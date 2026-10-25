@@ -377,7 +377,6 @@ static int _modbus_rtu_pre_check_confirmation(modbus_t *ctx,
 static int _modbus_rtu_check_integrity(modbus_t *ctx, uint8_t *msg, const int msg_length)
 {
     uint16_t crc_calculated;
-    uint16_t crc_received;
     int slave = msg[0];
 
     /* Filter on the Modbus unit identifier (slave) in RTU mode to avoid useless
@@ -390,17 +389,15 @@ static int _modbus_rtu_check_integrity(modbus_t *ctx, uint8_t *msg, const int ms
         return 0;
     }
 
-    crc_calculated = crc16(msg, msg_length - 2);
-    crc_received = (msg[msg_length - 1] << 8) | msg[msg_length - 2];
+    crc_calculated = crc16(msg, msg_length);
 
     /* Check CRC of msg */
-    if (crc_calculated == crc_received) {
+    if (crc_calculated == 0) {
         return msg_length;
     } else {
         if (ctx->debug) {
             fprintf(stderr,
-                    "ERROR CRC received 0x%0X != CRC calculated 0x%0X\n",
-                    crc_received,
+                    "ERROR 0 != CRC calculated 0x%0X\n",
                     crc_calculated);
         }
 
